@@ -1,25 +1,45 @@
-# Window
+# Mojo Window
 
-## Vision
+Mojo Window is a native windowing and input library for the [Mojo programming
+language](https://www.modular.com/mojo). Mojo's standard library has no
+windowing API of its own; this project fills that gap so that graphics
+libraries have a native window, an event loop, and a rendering surface to
+build on, without each one reimplementing SDL bindings from scratch.
 
-Window aims to be a simple and ease to use windowing library for the Mojo programming language.
+## What it does
 
-## Initial scope
+* Creates and destroys native windows, with configurable title, size, and
+  resizability.
+* Runs a per-frame event loop covering window close/resize, keyboard,
+  mouse movement, mouse buttons, and the mouse wheel.
+* Offers two rendering surfaces, chosen per window:
+  * a CPU-side RGBA8 pixel buffer, for software rendering with no GPU
+    dependency; or
+  * a live OpenGL (Core profile) context, for GPU-accelerated rendering.
+* Provides basic timing (`ticks()`) for frame-rate-independent logic.
 
-* Set up Mojo ↔ SDL3 interoperability, including building and linking.
-* Create and destroy native windows.
-* Configure window title, width, and height.
-* Provide a simple event loop.
-* Support:
-  * window close events
-  * window resize events
-  * keyboard input
-  * mouse movement
-  * mouse button input
-  * mouse wheel input
-* Provide basic timing functionality if straightforward.
-* Design a clean Mojo-facing API that hides SDL3 implementation details as much as possible.
-* Keep SDL3 as an internal implementation dependency rather than exposing SDL types directly.
+## How it works
+
+SDL3 is the only implementation dependency, loaded dynamically through
+Mojo's FFI and wrapped entirely inside one internal module
+(`window._sdl`). Nothing SDL-specific crosses into the public API: window
+and context handles are opaque, and every SDL event is translated into a
+typed `Event` — a `Variant` over `Quit`, `Resized`, `KeyDown`, `KeyUp`,
+`MouseMoved`, `MouseButtonDown`, `MouseButtonUp`, and `MouseWheel` — before
+it ever reaches consuming code.
+
+`Window` and `GLWindow` share this same window-and-event-loop foundation
+and differ only in rendering surface:
+
+* **`Window`** owns an SDL renderer and texture internally and exposes
+  them as a plain `pixels()` buffer plus `present()` — write RGBA bytes,
+  call `present()`, done. No OpenGL, no GPU driver required.
+* **`GLWindow`** creates the native window with an OpenGL context already
+  current, and gets out of the way. This library does not bind any GL
+  functions itself; `get_proc_address()` hands back raw function pointers
+  for the consumer to bind and call as needed. Binding a full GL API is a
+  much larger, open-ended task that belongs to whichever consumer actually
+  needs it, not to this thin windowing layer.
 
 ## Usage
 
@@ -40,18 +60,10 @@ def main() raises:
                 print("mouse_moved:", e.x, e.y)
 ```
 
-`Event` is a `Variant` of these payload types: `Quit`, `Resized`,
-`KeyDown`, `KeyUp`, `MouseMoved`, `MouseButtonDown`, `MouseButtonUp`,
-`MouseWheel`. Check which kind an event is with `.isa[T]()`, then read
-its fields with `[T]`. See `examples/basic_window.mojo` for the full
-list handled.
+See `examples/basic_window.mojo` for the full set of events handled and a
+working pixel-buffer render loop.
 
 ### GPU rendering with GLWindow
-
-`GLWindow` gives you a native window with a live, current OpenGL (Core
-profile) context instead of the CPU pixel buffer. `mojo-window` does
-not bind any GL functions itself — load what you need with
-`get_proc_address()` and call through the raw pointer:
 
 ```mojo
 from window import GLWindow, Quit
@@ -83,7 +95,8 @@ color, error-checked binding helper). Run it with `pixi run example_gl`.
 
 SDL3 is obtained via [pixi](https://pixi.sh)/conda-forge (the `sdl3`
 package), not a system package — `pixi install` pulls it automatically,
-no manual SDL install needed. Run the example with `pixi run example`.
+no manual SDL install needed. Run the examples with `pixi run example`
+and `pixi run example_gl`.
 
 **Consumers of this library** (e.g. a project importing `window` via
 `-I`) need `sdl3` in their own `pixi.toml` too — pixi/conda dependencies
@@ -93,9 +106,9 @@ decorations on Wayland (see "Known limitations" below).
 
 ## Planned
 
-* **Vulkan context exposure** — deliberately deferred. `GLWindow`
+* **Vulkan context exposure** — deliberately deferred. `GLWindow` already
   covers the GPU-accelerated case via OpenGL; a native Vulkan/Metal
-  surface is a separate, larger addition — not built until a consumer
+  surface is a separate, larger addition, not built until a consumer
   actually needs it.
 
 ## Known limitations
@@ -109,5 +122,3 @@ decorations on Wayland (see "Known limitations" below).
   draw client-side decorations itself. Purely cosmetic; not a bug in
   this library. Installing `libdecor` alongside `sdl3` should fix it, if
   ever needed.
-
-
