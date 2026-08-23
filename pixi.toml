@@ -12,4 +12,4 @@ test = "bash -c 'set -e; for f in tests/test_*.mojo; do SDL_VIDEODRIVER=dummy mo
 
 [dependencies]
 mojo = "*"
-sdl3 = "*"
+sdl3 = ">=3.4,<4"

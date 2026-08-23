@@ -11,9 +11,27 @@ and pointer results we don't need to dereference are therefore treated as
 opaque `Int` addresses. Where we do need to read through a pointer (error
 strings), `Pointer[T, MutUntrackedOrigin]` is used — `MutUntrackedOrigin`
 is the concrete origin the stdlib itself uses for FFI-returned pointers.
+
+Every handle kind (window, renderer, texture, GL context) is this same
+opaque `Int` — nothing here stops passing a texture handle where a
+renderer handle is expected; the compiler can't catch a mixup. Distinct
+nominal wrapper types per handle kind would close that gap, at the cost of
+touching every `SDL` method signature plus both `Window` and `GLWindow`.
+Deliberately deferred: real gap, but a compile-time-safety nicety rather
+than a correctness bug, so not worth the refactor churn until something
+actually trips over it.
 """
 
 from std.ffi import _DLHandle
+
+comptime _SDL_ABI_MAJOR_VERSION: Int32 = 3
+"""Major version this file's `SDL_Event` byte offsets were verified
+against (concretely 3.4.14, conda-forge) -- checked at runtime in
+`SDL.__init__` via `SDL_GetVersion`. SDL's own versioning policy
+guarantees ABI/API stability across the whole 3.x line, so this only
+guards against an unexpected major bump (e.g. a future SDL4 conda
+package satisfying `pixi.toml`'s `sdl3` dependency name), not against
+the minor/patch range moving."""
 
 comptime SDL_INIT_VIDEO: UInt32 = 0x00000020
 comptime SDL_WINDOW_RESIZABLE: UInt64 = 0x0000000000000020
@@ -78,6 +96,24 @@ struct SDL:
 
     def __init__(out self) raises:
         self.lib = _DLHandle("libSDL3.so")
+        var major = self.get_version() // 1000000
+        if major != _SDL_ABI_MAJOR_VERSION:
+            raise Error(
+                "linked SDL3 major version "
+                + String(major)
+                + ", expected "
+                + String(_SDL_ABI_MAJOR_VERSION)
+                + " -- SDL_Event field offsets in _sdl.mojo were verified"
+                + " against 3.4.14 and are not safe to use against a"
+                + " different major version"
+            )
+
+    def get_version(self) raises -> Int32:
+        """Linked SDL3 library version, encoded as
+        `major*1000000 + minor*1000 + micro` (SDL's own `SDL_VERSIONNUM`
+        convention). Safe to call before `init_video()`.
+        """
+        return self.lib.call["SDL_GetVersion", Int32]()
 
     def get_error(self) raises -> String:
         var ptr = self.lib.call[

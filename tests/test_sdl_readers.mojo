@@ -5,8 +5,9 @@ reader decodes the value written there -- guards the offset comments in
 `_sdl.mojo` against silent bitrot. No live SDL events involved.
 """
 
-from std.testing import TestSuite, assert_equal
+from std.testing import TestSuite, assert_equal, assert_true
 from window._sdl import (
+    SDL,
     SDL_EVENT_QUIT,
     SDL_EVENT_WINDOW_RESIZED,
     SDL_EVENT_KEY_DOWN,
@@ -85,6 +86,15 @@ def test_wheel_xy() raises -> None:
     var ptr = buf.unsafe_ptr()
     assert_equal(wheel_x(ptr), Float32(0.0))
     assert_equal(wheel_y(ptr), Float32(-1.0))
+
+
+def test_linked_sdl3_is_major_version_3() raises -> None:
+    """Guards the ABI check in `SDL.__init__` -- if this ever fails, the
+    offsets above need re-verifying against whatever SDL3 build is linked.
+    """
+    var sdl = SDL()
+    var major = sdl.get_version() // 1000000
+    assert_true(major == 3)
 
 
 def main() raises:
