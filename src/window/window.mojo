@@ -62,6 +62,10 @@ struct Window:
     def close(mut self):
         self._open = False
 
+    def ticks(self) raises -> Int:
+        """Milliseconds since SDL library init."""
+        return Int(self._sdl.get_ticks())
+
     def events(mut self) raises -> List[Event]:
         """Drains all pending SDL events for this frame as translated `Event`s.
 

@@ -97,6 +97,9 @@ struct SDL:
     def poll_event(self, buf: UnsafePointer[UInt8, _]) raises -> Bool:
         return self.lib.call["SDL_PollEvent", Bool](buf)
 
+    def get_ticks(self) raises -> UInt64:
+        return self.lib.call["SDL_GetTicks", UInt64]()
+
 
 # --- SDL_Event field readers -------------------------------------------
 #
