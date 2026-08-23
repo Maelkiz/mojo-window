@@ -37,3 +37,15 @@ def main() raises:
             elif event.isa[MouseWheel]():
                 var e = event[MouseWheel]
                 print("mouse_wheel:", e.x, e.y)
+
+        var pixels = window.pixels()
+        var width = window.width()
+        var height = window.height()
+        for y in range(height):
+            for x in range(width):
+                var offset = (y * width + x) * 4
+                pixels[unsafe_offset=offset] = UInt8((x * 255) // width)  # R
+                pixels[unsafe_offset=offset + 1] = UInt8((y * 255) // height)  # G
+                pixels[unsafe_offset=offset + 2] = 128  # B
+                pixels[unsafe_offset=offset + 3] = 255  # A
+        window.present()

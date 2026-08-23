@@ -52,13 +52,32 @@ SDL3 is obtained via [pixi](https://pixi.sh)/conda-forge (the `sdl3`
 package), not a system package — `pixi install` pulls it automatically,
 no manual SDL install needed. Run the example with `pixi run example`.
 
+**Consumers of this library** (e.g. a project importing `window` via
+`-I`) need `sdl3` in their own `pixi.toml` too — pixi/conda dependencies
+aren't transitive across projects, this repo's `pixi.toml` only covers
+developing `window` itself. Add `libdecor` as well if you want window
+decorations on Wayland (see "Known limitations" below).
+
+## Planned
+
+* **GL/Vulkan context exposure** — deliberately deferred. `Window`
+  currently offers a CPU-side RGBA pixel buffer (`pixels()` +
+  `present()`) as its rendering surface, which is enough to unblock a
+  software-rendered consumer (e.g. a Processing-style creative-coding
+  library). Exposing a native GL/Vulkan/Metal context for GPU-accelerated
+  drawing is a separate, larger addition — not built until a consumer
+  actually needs it.
+
 ## Known limitations
 
-* **Wayland:** since this library does no rendering (out of scope for
-  this MVP — see "Initial scope" above), a native Wayland compositor
-  (e.g. GNOME's default session) may never map the window as
-  interactive — it can appear in the window switcher but show no
-  decorations and receive no input. Workaround: run under XWayland,
-  e.g. `SDL_VIDEODRIVER=x11 <your app>`.
+* **Wayland — no window decorations:** on a native Wayland compositor
+  (e.g. GNOME's default session), windows render and receive input
+  correctly, but appear with no title bar / borders. This is SDL3
+  falling back to an undecorated window because the `sdl3` conda-forge
+  package doesn't pull in `libdecor` — GNOME/Mutter doesn't support the
+  compositor-side `xdg-decoration` protocol, so SDL needs `libdecor` to
+  draw client-side decorations itself. Purely cosmetic; not a bug in
+  this library. Installing `libdecor` alongside `sdl3` should fix it, if
+  ever needed.
 
 

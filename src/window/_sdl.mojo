@@ -30,6 +30,14 @@ comptime SDL_EVENT_MOUSE_WHEEL: UInt32 = 0x403
 comptime SDL_EVENT_SIZE = 128
 """Size in bytes of SDL_Event — the union is padded to this size for ABI stability."""
 
+comptime SDL_PIXELFORMAT_RGBA32: UInt32 = 0x16762004
+"""`SDL_PIXELFORMAT_ABGR8888` on little-endian (the only platform this
+package targets — see `pixi.toml`'s `platforms`); SDL defines
+`SDL_PIXELFORMAT_RGBA32` as a byte-order-dependent alias, so this is the
+concrete value, not the byte-order-generic macro."""
+
+comptime SDL_TEXTUREACCESS_STREAMING: Int32 = 1
+
 # Byte offsets into an SDL_Event buffer, shared by every event struct
 # variant (SDL_CommonEvent header: type@0, reserved@4, timestamp@8).
 comptime _OFF_WINDOW_ID = 16
@@ -112,6 +120,66 @@ struct SDL:
 
     def get_ticks(self) raises -> UInt64:
         return self.lib.call["SDL_GetTicks", UInt64]()
+
+    def create_renderer(self, window: Int) raises -> Int:
+        # `name=0` (NULL) lets SDL auto-select the best available driver,
+        # same as any normal app would get.
+        var renderer = self.lib.call["SDL_CreateRenderer", Int](
+            window, Int(0)
+        )
+        if renderer == 0:
+            raise Error("SDL_CreateRenderer failed: " + self.get_error())
+        return renderer
+
+    def destroy_renderer(self, renderer: Int) raises:
+        self.lib.call["SDL_DestroyRenderer"](renderer)
+
+    def create_texture(self, renderer: Int, width: Int32, height: Int32) raises -> Int:
+        var texture = self.lib.call["SDL_CreateTexture", Int](
+            renderer,
+            SDL_PIXELFORMAT_RGBA32,
+            SDL_TEXTUREACCESS_STREAMING,
+            width,
+            height,
+        )
+        if texture == 0:
+            raise Error("SDL_CreateTexture failed: " + self.get_error())
+        return texture
+
+    def destroy_texture(self, texture: Int) raises:
+        self.lib.call["SDL_DestroyTexture"](texture)
+
+    def update_texture(
+        self, texture: Int, pixels: Pointer[UInt8, _], pitch: Int32
+    ) raises:
+        # `rect=0` (NULL) updates the whole texture.
+        if not self.lib.call["SDL_UpdateTexture", Bool](
+            texture, Int(0), pixels, pitch
+        ):
+            raise Error("SDL_UpdateTexture failed: " + self.get_error())
+
+    def render_texture(self, renderer: Int, texture: Int) raises:
+        # `srcrect=0, dstrect=0` (NULL) draws the whole texture, stretched
+        # to fill the whole render target.
+        if not self.lib.call["SDL_RenderTexture", Bool](
+            renderer, texture, Int(0), Int(0)
+        ):
+            raise Error("SDL_RenderTexture failed: " + self.get_error())
+
+    def render_present(self, renderer: Int) raises:
+        if not self.lib.call["SDL_RenderPresent", Bool](renderer):
+            raise Error("SDL_RenderPresent failed: " + self.get_error())
+
+    def set_render_vsync(self, renderer: Int, enabled: Bool) raises:
+        var vsync: Int32 = 1 if enabled else 0
+        if not self.lib.call["SDL_SetRenderVSync", Bool](renderer, vsync):
+            raise Error("SDL_SetRenderVSync failed: " + self.get_error())
+
+    def set_window_fullscreen(self, window: Int, enabled: Bool) raises:
+        if not self.lib.call["SDL_SetWindowFullscreen", Bool](
+            window, enabled
+        ):
+            raise Error("SDL_SetWindowFullscreen failed: " + self.get_error())
 
 
 # --- SDL_Event field readers -------------------------------------------
