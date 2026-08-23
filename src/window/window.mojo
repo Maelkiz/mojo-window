@@ -5,35 +5,11 @@ from ._sdl import (
     SDL_EVENT_SIZE,
     SDL_EVENT_QUIT,
     SDL_EVENT_WINDOW_RESIZED,
-    SDL_EVENT_KEY_DOWN,
-    SDL_EVENT_KEY_UP,
-    SDL_EVENT_MOUSE_MOTION,
-    SDL_EVENT_MOUSE_BUTTON_DOWN,
-    SDL_EVENT_MOUSE_BUTTON_UP,
-    SDL_EVENT_MOUSE_WHEEL,
     event_type,
     window_data1,
     window_data2,
-    key_keycode,
-    mouse_x,
-    mouse_y,
-    button_index,
-    button_x,
-    button_y,
-    wheel_x,
-    wheel_y,
 )
-from .event import (
-    Event,
-    Quit,
-    Resized,
-    KeyDown,
-    KeyUp,
-    MouseMoved,
-    MouseButtonDown,
-    MouseButtonUp,
-    MouseWheel,
-)
+from .event import Event, Quit, Resized, translate_event
 
 comptime _BYTES_PER_PIXEL = 4
 
@@ -150,32 +126,16 @@ struct Window:
         var ptr = buf.unsafe_ptr()
         while self._sdl.poll_event(ptr):
             var kind = event_type(ptr)
-            var e: Event
             if kind == SDL_EVENT_QUIT:
                 self._open = False
-                e = Quit()
+                events.append(Event(Quit()))
             elif kind == SDL_EVENT_WINDOW_RESIZED:
                 var new_width = Int(window_data1(ptr))
                 var new_height = Int(window_data2(ptr))
                 self._resize(new_width, new_height)
-                e = Resized(new_width, new_height)
-            elif kind == SDL_EVENT_KEY_DOWN:
-                e = KeyDown(Int(key_keycode(ptr)))
-            elif kind == SDL_EVENT_KEY_UP:
-                e = KeyUp(Int(key_keycode(ptr)))
-            elif kind == SDL_EVENT_MOUSE_MOTION:
-                e = MouseMoved(Int(mouse_x(ptr)), Int(mouse_y(ptr)))
-            elif kind == SDL_EVENT_MOUSE_BUTTON_DOWN:
-                e = MouseButtonDown(
-                    Int(button_index(ptr)), Int(button_x(ptr)), Int(button_y(ptr))
-                )
-            elif kind == SDL_EVENT_MOUSE_BUTTON_UP:
-                e = MouseButtonUp(
-                    Int(button_index(ptr)), Int(button_x(ptr)), Int(button_y(ptr))
-                )
-            elif kind == SDL_EVENT_MOUSE_WHEEL:
-                e = MouseWheel(Int(wheel_x(ptr)), Int(wheel_y(ptr)))
+                events.append(Event(Resized(new_width, new_height)))
             else:
-                continue
-            events.append(e)
+                var translated = translate_event(kind, ptr)
+                if translated:
+                    events.append(translated.value())
         return events^
