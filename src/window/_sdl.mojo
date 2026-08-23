@@ -28,7 +28,7 @@ comptime SDL_EVENT_MOUSE_BUTTON_UP: UInt32 = 0x402
 comptime SDL_EVENT_MOUSE_WHEEL: UInt32 = 0x403
 
 comptime SDL_EVENT_SIZE = 128
-"""sizeof(SDL_Event) — the union is padded to this size for ABI stability."""
+"""Size in bytes of SDL_Event — the union is padded to this size for ABI stability."""
 
 # Byte offsets into an SDL_Event buffer, shared by every event struct
 # variant (SDL_CommonEvent header: type@0, reserved@4, timestamp@8).
