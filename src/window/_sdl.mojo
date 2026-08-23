@@ -42,8 +42,6 @@ comptime _OFF_KEY_REPEAT = 37
 
 comptime _OFF_MOTION_X = 28
 comptime _OFF_MOTION_Y = 32
-comptime _OFF_MOTION_XREL = 36
-comptime _OFF_MOTION_YREL = 40
 
 comptime _OFF_BUTTON_INDEX = 24
 comptime _OFF_BUTTON_X = 28
