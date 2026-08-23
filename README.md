@@ -113,6 +113,11 @@ decorations on Wayland (see "Known limitations" below).
 
 ## Known limitations
 
+* **Threading — single-threaded use only:** create and drive each `Window`
+  or `GLWindow` from the one thread that constructed it (SDL itself
+  requires window creation and event polling to happen on the thread that
+  called `SDL_Init`). This library does no cross-thread synchronization of
+  its own.
 * **Wayland — no window decorations:** on a native Wayland compositor
   (e.g. GNOME's default session), windows render and receive input
   correctly, but appear with no title bar / borders. This is SDL3
