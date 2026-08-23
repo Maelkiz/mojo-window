@@ -101,6 +101,15 @@ struct SDL:
     def poll_event(self, buf: Pointer[UInt8, _]) raises -> Bool:
         return self.lib.call["SDL_PollEvent", Bool](buf)
 
+    def push_event(self, buf: Pointer[UInt8, _]) raises -> Bool:
+        """Queues a caller-built `SDL_Event` buffer for the next `poll_event`.
+
+        Test-only entry point (used by `tests/test_event_translation.mojo`
+        to exercise the real poll -> translate path instead of just the
+        offset readers) — not used by `Window` itself.
+        """
+        return self.lib.call["SDL_PushEvent", Bool](buf)
+
     def get_ticks(self) raises -> UInt64:
         return self.lib.call["SDL_GetTicks", UInt64]()
 

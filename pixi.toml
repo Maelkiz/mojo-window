@@ -7,6 +7,7 @@ version = "0.1.0"
 
 [tasks]
 example = "mojo run -I src examples/basic_window.mojo"
+test = "bash -c 'set -e; for f in tests/test_*.mojo; do SDL_VIDEODRIVER=dummy mojo run -I src \"$f\"; done'"
 
 [dependencies]
 mojo = "*"
