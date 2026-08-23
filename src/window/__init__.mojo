@@ -8,4 +8,5 @@ from .event import (
     MouseMoved,
     MouseButtonDown,
     MouseButtonUp,
+    MouseWheel,
 )

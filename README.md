@@ -16,6 +16,7 @@ Window aims to be a simple and ease to use windowing library for the Mojo progra
   * keyboard input
   * mouse movement
   * mouse button input
+  * mouse wheel input
 * Provide basic timing functionality if straightforward.
 * Design a clean Mojo-facing API that hides SDL3 implementation details as much as possible.
 * Keep SDL3 as an internal implementation dependency rather than exposing SDL types directly.
@@ -38,5 +39,14 @@ fn main() raises:
                 case Event.mouse_move(x, y):
                     ...
 ```
+
+## Known limitations
+
+* **Wayland:** since this library does no rendering (by design — see
+  non-goals in `plan.md`), a native Wayland compositor (e.g. GNOME's
+  default session) may never map the window as interactive — it can
+  appear in the window switcher but show no decorations and receive no
+  input. Workaround: run under XWayland, e.g.
+  `SDL_VIDEODRIVER=x11 <your app>`.
 
 

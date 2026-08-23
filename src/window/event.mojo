@@ -44,8 +44,21 @@ struct MouseButtonUp(ImplicitlyCopyable, Movable):
     var y: Int
 
 
+@fieldwise_init
+struct MouseWheel(ImplicitlyCopyable, Movable):
+    var x: Int
+    var y: Int
+
+
 comptime Event = Variant[
-    Quit, Resized, KeyDown, KeyUp, MouseMoved, MouseButtonDown, MouseButtonUp
+    Quit,
+    Resized,
+    KeyDown,
+    KeyUp,
+    MouseMoved,
+    MouseButtonDown,
+    MouseButtonUp,
+    MouseWheel,
 ]
 """A window/input event. Check the concrete kind with `.isa[T]()`, then
 read fields with `[T]`, e.g. `if e.isa[KeyDown](): print(e[KeyDown].keycode)`.

@@ -6,6 +6,7 @@ platforms = ["linux-64"]
 version = "0.1.0"
 
 [tasks]
+example = "mojo run -I src examples/basic_window.mojo"
 
 [dependencies]
 mojo = "*"

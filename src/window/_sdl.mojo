@@ -25,6 +25,7 @@ comptime SDL_EVENT_KEY_UP: UInt32 = 0x301
 comptime SDL_EVENT_MOUSE_MOTION: UInt32 = 0x400
 comptime SDL_EVENT_MOUSE_BUTTON_DOWN: UInt32 = 0x401
 comptime SDL_EVENT_MOUSE_BUTTON_UP: UInt32 = 0x402
+comptime SDL_EVENT_MOUSE_WHEEL: UInt32 = 0x403
 
 comptime SDL_EVENT_SIZE = 128
 """sizeof(SDL_Event) — the union is padded to this size for ABI stability."""
@@ -46,6 +47,9 @@ comptime _OFF_MOTION_Y = 32
 comptime _OFF_BUTTON_INDEX = 24
 comptime _OFF_BUTTON_X = 28
 comptime _OFF_BUTTON_Y = 32
+
+comptime _OFF_WHEEL_X = 24
+comptime _OFF_WHEEL_Y = 28
 
 
 struct SDL:
@@ -159,3 +163,11 @@ def button_x(buf: UnsafePointer[UInt8, _]) -> Float32:
 
 def button_y(buf: UnsafePointer[UInt8, _]) -> Float32:
     return buf.unsafe_offset(_OFF_BUTTON_Y).unsafe_bitcast[Float32]()[]
+
+
+def wheel_x(buf: UnsafePointer[UInt8, _]) -> Float32:
+    return buf.unsafe_offset(_OFF_WHEEL_X).unsafe_bitcast[Float32]()[]
+
+
+def wheel_y(buf: UnsafePointer[UInt8, _]) -> Float32:
+    return buf.unsafe_offset(_OFF_WHEEL_Y).unsafe_bitcast[Float32]()[]

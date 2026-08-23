@@ -10,6 +10,7 @@ from ._sdl import (
     SDL_EVENT_MOUSE_MOTION,
     SDL_EVENT_MOUSE_BUTTON_DOWN,
     SDL_EVENT_MOUSE_BUTTON_UP,
+    SDL_EVENT_MOUSE_WHEEL,
     event_type,
     window_data1,
     window_data2,
@@ -19,6 +20,8 @@ from ._sdl import (
     button_index,
     button_x,
     button_y,
+    wheel_x,
+    wheel_y,
 )
 from .event import (
     Event,
@@ -29,6 +32,7 @@ from .event import (
     MouseMoved,
     MouseButtonDown,
     MouseButtonUp,
+    MouseWheel,
 )
 
 
@@ -96,6 +100,8 @@ struct Window:
                 e = MouseButtonUp(
                     Int(button_index(ptr)), Int(button_x(ptr)), Int(button_y(ptr))
                 )
+            elif kind == SDL_EVENT_MOUSE_WHEEL:
+                e = MouseWheel(Int(wheel_x(ptr)), Int(wheel_y(ptr)))
             else:
                 continue
             events.append(e)
