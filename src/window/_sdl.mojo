@@ -9,7 +9,7 @@ stdlib rename only touches this module.
 rules out returning pointer types directly. SDL handles (`SDL_Window *`)
 and pointer results we don't need to dereference are therefore treated as
 opaque `Int` addresses. Where we do need to read through a pointer (error
-strings), `UnsafePointer[T, MutUntrackedOrigin]` is used — `MutUntrackedOrigin`
+strings), `Pointer[T, MutUntrackedOrigin]` is used — `MutUntrackedOrigin`
 is the concrete origin the stdlib itself uses for FFI-returned pointers.
 """
 
@@ -62,7 +62,7 @@ struct SDL:
 
     def get_error(self) raises -> String:
         var ptr = self.lib.call[
-            "SDL_GetError", UnsafePointer[UInt8, MutUntrackedOrigin]
+            "SDL_GetError", Pointer[UInt8, MutUntrackedOrigin]
         ]()
         return String(unsafe_from_utf8_ptr=ptr)
 
@@ -98,7 +98,7 @@ struct SDL:
     def destroy_window(self, window: Int) raises:
         self.lib.call["SDL_DestroyWindow"](window)
 
-    def poll_event(self, buf: UnsafePointer[UInt8, _]) raises -> Bool:
+    def poll_event(self, buf: Pointer[UInt8, _]) raises -> Bool:
         return self.lib.call["SDL_PollEvent", Bool](buf)
 
     def get_ticks(self) raises -> UInt64:
@@ -113,61 +113,61 @@ struct SDL:
 # uses for the `SDL_Event` union.
 
 
-def event_type(buf: UnsafePointer[UInt8, _]) -> UInt32:
+def event_type(buf: Pointer[UInt8, _]) -> UInt32:
     return buf.unsafe_bitcast[UInt32]()[]
 
 
-def window_id(buf: UnsafePointer[UInt8, _]) -> UInt32:
+def window_id(buf: Pointer[UInt8, _]) -> UInt32:
     return buf.unsafe_offset(_OFF_WINDOW_ID).unsafe_bitcast[UInt32]()[]
 
 
-def window_data1(buf: UnsafePointer[UInt8, _]) -> Int32:
+def window_data1(buf: Pointer[UInt8, _]) -> Int32:
     return buf.unsafe_offset(_OFF_WINDOW_DATA1).unsafe_bitcast[Int32]()[]
 
 
-def window_data2(buf: UnsafePointer[UInt8, _]) -> Int32:
+def window_data2(buf: Pointer[UInt8, _]) -> Int32:
     return buf.unsafe_offset(_OFF_WINDOW_DATA2).unsafe_bitcast[Int32]()[]
 
 
-def key_scancode(buf: UnsafePointer[UInt8, _]) -> UInt32:
+def key_scancode(buf: Pointer[UInt8, _]) -> UInt32:
     return buf.unsafe_offset(_OFF_KEY_SCANCODE).unsafe_bitcast[UInt32]()[]
 
 
-def key_keycode(buf: UnsafePointer[UInt8, _]) -> UInt32:
+def key_keycode(buf: Pointer[UInt8, _]) -> UInt32:
     return buf.unsafe_offset(_OFF_KEY_KEYCODE).unsafe_bitcast[UInt32]()[]
 
 
-def key_mod(buf: UnsafePointer[UInt8, _]) -> UInt16:
+def key_mod(buf: Pointer[UInt8, _]) -> UInt16:
     return buf.unsafe_offset(_OFF_KEY_MOD).unsafe_bitcast[UInt16]()[]
 
 
-def key_repeat(buf: UnsafePointer[UInt8, _]) -> Bool:
+def key_repeat(buf: Pointer[UInt8, _]) -> Bool:
     return buf.unsafe_offset(_OFF_KEY_REPEAT).unsafe_bitcast[UInt8]()[] != 0
 
 
-def mouse_x(buf: UnsafePointer[UInt8, _]) -> Float32:
+def mouse_x(buf: Pointer[UInt8, _]) -> Float32:
     return buf.unsafe_offset(_OFF_MOTION_X).unsafe_bitcast[Float32]()[]
 
 
-def mouse_y(buf: UnsafePointer[UInt8, _]) -> Float32:
+def mouse_y(buf: Pointer[UInt8, _]) -> Float32:
     return buf.unsafe_offset(_OFF_MOTION_Y).unsafe_bitcast[Float32]()[]
 
 
-def button_index(buf: UnsafePointer[UInt8, _]) -> UInt8:
+def button_index(buf: Pointer[UInt8, _]) -> UInt8:
     return buf.unsafe_offset(_OFF_BUTTON_INDEX).unsafe_bitcast[UInt8]()[]
 
 
-def button_x(buf: UnsafePointer[UInt8, _]) -> Float32:
+def button_x(buf: Pointer[UInt8, _]) -> Float32:
     return buf.unsafe_offset(_OFF_BUTTON_X).unsafe_bitcast[Float32]()[]
 
 
-def button_y(buf: UnsafePointer[UInt8, _]) -> Float32:
+def button_y(buf: Pointer[UInt8, _]) -> Float32:
     return buf.unsafe_offset(_OFF_BUTTON_Y).unsafe_bitcast[Float32]()[]
 
 
-def wheel_x(buf: UnsafePointer[UInt8, _]) -> Float32:
+def wheel_x(buf: Pointer[UInt8, _]) -> Float32:
     return buf.unsafe_offset(_OFF_WHEEL_X).unsafe_bitcast[Float32]()[]
 
 
-def wheel_y(buf: UnsafePointer[UInt8, _]) -> Float32:
+def wheel_y(buf: Pointer[UInt8, _]) -> Float32:
     return buf.unsafe_offset(_OFF_WHEEL_Y).unsafe_bitcast[Float32]()[]
