@@ -17,6 +17,17 @@ from std.ffi import _DLHandle
 
 comptime SDL_INIT_VIDEO: UInt32 = 0x00000020
 comptime SDL_WINDOW_RESIZABLE: UInt64 = 0x0000000000000020
+comptime SDL_WINDOW_OPENGL: UInt64 = 0x0000000000000002
+
+# SDL_GLAttr enum values (positional, per SDL_video.h).
+comptime SDL_GL_DOUBLEBUFFER: Int32 = 5
+comptime SDL_GL_DEPTH_SIZE: Int32 = 6
+comptime SDL_GL_STENCIL_SIZE: Int32 = 7
+comptime SDL_GL_CONTEXT_MAJOR_VERSION: Int32 = 17
+comptime SDL_GL_CONTEXT_MINOR_VERSION: Int32 = 18
+comptime SDL_GL_CONTEXT_PROFILE_MASK: Int32 = 20
+
+comptime SDL_GL_CONTEXT_PROFILE_CORE: Int32 = 0x0001
 
 comptime SDL_EVENT_QUIT: UInt32 = 0x100
 comptime SDL_EVENT_WINDOW_RESIZED: UInt32 = 0x206
@@ -93,9 +104,18 @@ struct SDL:
         self.lib.call["SDL_QuitSubSystem"](SDL_INIT_VIDEO)
 
     def create_window(
-        self, title: String, width: Int32, height: Int32, resizable: Bool
+        self,
+        title: String,
+        width: Int32,
+        height: Int32,
+        resizable: Bool,
+        opengl: Bool = False,
     ) raises -> Int:
-        var flags: UInt64 = SDL_WINDOW_RESIZABLE if resizable else 0
+        var flags: UInt64 = 0
+        if resizable:
+            flags |= SDL_WINDOW_RESIZABLE
+        if opengl:
+            flags |= SDL_WINDOW_OPENGL
         var window = self.lib.call["SDL_CreateWindow", Int](
             title.unsafe_ptr(), width, height, flags
         )
@@ -180,6 +200,36 @@ struct SDL:
             window, enabled
         ):
             raise Error("SDL_SetWindowFullscreen failed: " + self.get_error())
+
+    def gl_set_attribute(self, attr: Int32, value: Int32) raises:
+        if not self.lib.call["SDL_GL_SetAttribute", Bool](attr, value):
+            raise Error("SDL_GL_SetAttribute failed: " + self.get_error())
+
+    def gl_create_context(self, window: Int) raises -> Int:
+        var context = self.lib.call["SDL_GL_CreateContext", Int](window)
+        if context == 0:
+            raise Error("SDL_GL_CreateContext failed: " + self.get_error())
+        return context
+
+    def gl_make_current(self, window: Int, context: Int) raises:
+        if not self.lib.call["SDL_GL_MakeCurrent", Bool](window, context):
+            raise Error("SDL_GL_MakeCurrent failed: " + self.get_error())
+
+    def gl_swap_window(self, window: Int) raises:
+        if not self.lib.call["SDL_GL_SwapWindow", Bool](window):
+            raise Error("SDL_GL_SwapWindow failed: " + self.get_error())
+
+    def gl_destroy_context(self, context: Int) raises:
+        self.lib.call["SDL_GL_DestroyContext"](context)
+
+    def gl_set_swap_interval(self, interval: Int) raises:
+        if not self.lib.call["SDL_GL_SetSwapInterval", Bool](Int32(interval)):
+            raise Error("SDL_GL_SetSwapInterval failed: " + self.get_error())
+
+    def gl_get_proc_address(self, name: String) raises -> Int:
+        return self.lib.call["SDL_GL_GetProcAddress", Int](
+            name.unsafe_ptr()
+        )
 
 
 # --- SDL_Event field readers -------------------------------------------

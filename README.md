@@ -46,6 +46,39 @@ def main() raises:
 its fields with `[T]`. See `examples/basic_window.mojo` for the full
 list handled.
 
+### GPU rendering with GLWindow
+
+`GLWindow` gives you a native window with a live, current OpenGL (Core
+profile) context instead of the CPU pixel buffer. `mojo-window` does
+not bind any GL functions itself — load what you need with
+`get_proc_address()` and call through the raw pointer:
+
+```mojo
+from window import GLWindow, Quit
+
+comptime GLClearColorFn = def (Float32, Float32, Float32, Float32) thin abi(
+    "C"
+) -> None
+
+def main() raises:
+    var window = GLWindow("Hello GL", 800, 600)
+    window.set_swap_interval(1)
+
+    var addr = window.get_proc_address("glClearColor")
+    var opaque = Pointer[NoneType, MutUntrackedOrigin](unsafe_from_address=addr)
+    var gl_clear_color = Pointer(to=opaque).unsafe_bitcast[GLClearColorFn]()[]
+
+    while window.is_open():
+        for event in window.events():
+            if event.isa[Quit]():
+                window.close()
+        gl_clear_color(0.1, 0.2, 0.3, 1.0)
+        window.swap_buffers()
+```
+
+See `examples/gl_triangle.mojo` for a fuller version (animated clear
+color, error-checked binding helper). Run it with `pixi run example_gl`.
+
 ## Dependencies
 
 SDL3 is obtained via [pixi](https://pixi.sh)/conda-forge (the `sdl3`
@@ -60,12 +93,9 @@ decorations on Wayland (see "Known limitations" below).
 
 ## Planned
 
-* **GL/Vulkan context exposure** — deliberately deferred. `Window`
-  currently offers a CPU-side RGBA pixel buffer (`pixels()` +
-  `present()`) as its rendering surface, which is enough to unblock a
-  software-rendered consumer (e.g. a Processing-style creative-coding
-  library). Exposing a native GL/Vulkan/Metal context for GPU-accelerated
-  drawing is a separate, larger addition — not built until a consumer
+* **Vulkan context exposure** — deliberately deferred. `GLWindow`
+  covers the GPU-accelerated case via OpenGL; a native Vulkan/Metal
+  surface is a separate, larger addition — not built until a consumer
   actually needs it.
 
 ## Known limitations
