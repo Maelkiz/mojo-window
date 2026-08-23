@@ -23,7 +23,7 @@ Window aims to be a simple and ease to use windowing library for the Mojo progra
 The target API is something like this (but not set in stone yet):
 
 ```mojo
-from mojo_window import Window, Event
+from window import Window, Event
 
 fn main() raises:
     var window = Window("Hello Mojo", 800, 600)
