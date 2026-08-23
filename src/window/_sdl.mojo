@@ -71,6 +71,17 @@ struct SDL:
     def quit(self) raises:
         self.lib.call["SDL_Quit"]()
 
+    def quit_video(self) raises:
+        """Decrement the video subsystem's SDL-internal ref count.
+
+        SDL_Init/SDL_InitSubSystem ref-count each subsystem internally; the
+        subsystem only actually shuts down once every matching
+        SDL_QuitSubSystem call has landed. `Window` relies on this instead
+        of tracking its own live-window count (which this Mojo release has
+        no global mutable state to hold outside a function body).
+        """
+        self.lib.call["SDL_QuitSubSystem"](SDL_INIT_VIDEO)
+
     def create_window(
         self, title: String, width: Int32, height: Int32, resizable: Bool
     ) raises -> Int:
