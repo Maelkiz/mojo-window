@@ -1,4 +1,4 @@
-# Mojo Window
+# Mojo Window 🔥
 
 Mojo Window is a native windowing and input library for the [Mojo programming
 language](https://www.modular.com/mojo). Mojo's standard library has no
