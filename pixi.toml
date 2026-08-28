@@ -9,7 +9,9 @@ version = "0.1.0"
 example = "mojo run -I src examples/basic_window.mojo"
 example_gl = "mojo run -I src examples/gl_triangle.mojo"
 test = "bash -c 'set -e; for f in tests/test_*.mojo; do SDL_VIDEODRIVER=dummy mojo run -I src \"$f\"; done'"
+package = "rattler-build build --recipe conda.recipe/recipe.yaml --output-dir output --channel https://conda.modular.com/max --channel conda-forge"
 
 [dependencies]
 mojo = "*"
 sdl3 = ">=3.4,<4"
+rattler-build = "*"

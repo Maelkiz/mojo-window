@@ -4,3 +4,6 @@
 
 # IDE
 .vscode/
+
+# Built packages
+output/
