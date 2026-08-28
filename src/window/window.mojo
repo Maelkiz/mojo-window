@@ -24,29 +24,45 @@ struct Window:
     var _texture: Int
     var _pixels: List[UInt8]
 
-    def __init__(out self, title: String, width: Int, height: Int) raises:
+    def __init__(
+        out self, title: String, width: Int, height: Int, fullscreen: Bool = False
+    ) raises:
         self._sdl = SDL()
         self._sdl.init_video()
         try:
             self._handle = self._sdl.create_window(
-                title, Int32(width), Int32(height), True
+                title, Int32(width), Int32(height), True, fullscreen=fullscreen
             )
         except e:
             self._sdl.quit_video()
             raise e
         self._open = True
-        self._width = width
-        self._height = height
         try:
             self._renderer = self._sdl.create_renderer(self._handle)
         except e:
             self._sdl.destroy_window(self._handle)
             self._sdl.quit_video()
             raise e
+        # When fullscreen, SDL ignores the requested size and uses the display
+        # resolution — query the real dimensions before creating the texture.
+        var actual_width = width
+        var actual_height = height
+        if fullscreen:
+            try:
+                actual_width, actual_height = self._sdl.get_window_size(
+                    self._handle
+                )
+            except e:
+                self._sdl.destroy_renderer(self._renderer)
+                self._sdl.destroy_window(self._handle)
+                self._sdl.quit_video()
+                raise e
+        self._width = actual_width
+        self._height = actual_height
         try:
             self._sdl.set_render_vsync(self._renderer, True)
             self._texture = self._sdl.create_texture(
-                self._renderer, Int32(width), Int32(height)
+                self._renderer, Int32(actual_width), Int32(actual_height)
             )
         except e:
             self._sdl.destroy_renderer(self._renderer)
@@ -54,7 +70,7 @@ struct Window:
             self._sdl.quit_video()
             raise e
         self._pixels = List[UInt8](
-            length=width * height * _BYTES_PER_PIXEL, fill=0
+            length=actual_width * actual_height * _BYTES_PER_PIXEL, fill=0
         )
 
     def __deinit__(deinit self):

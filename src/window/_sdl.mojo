@@ -34,6 +34,7 @@ package satisfying `pixi.toml`'s `sdl3` dependency name), not against
 the minor/patch range moving."""
 
 comptime SDL_INIT_VIDEO: UInt32 = 0x00000020
+comptime SDL_WINDOW_FULLSCREEN: UInt64 = 0x0000000000000001
 comptime SDL_WINDOW_RESIZABLE: UInt64 = 0x0000000000000020
 comptime SDL_WINDOW_OPENGL: UInt64 = 0x0000000000000002
 
@@ -146,12 +147,15 @@ struct SDL:
         height: Int32,
         resizable: Bool,
         opengl: Bool = False,
+        fullscreen: Bool = False,
     ) raises -> Int:
         var flags: UInt64 = 0
         if resizable:
             flags |= SDL_WINDOW_RESIZABLE
         if opengl:
             flags |= SDL_WINDOW_OPENGL
+        if fullscreen:
+            flags |= SDL_WINDOW_FULLSCREEN
         var window = self.lib.call["SDL_CreateWindow", Int](
             title.unsafe_ptr(), width, height, flags
         )
@@ -176,6 +180,13 @@ struct SDL:
 
     def get_ticks(self) raises -> UInt64:
         return self.lib.call["SDL_GetTicks", UInt64]()
+
+    def get_window_size(self, window: Int) raises -> Tuple[Int, Int]:
+        var w = List[Int32](length=1, fill=0)
+        var h = List[Int32](length=1, fill=0)
+        self.lib.call["SDL_GetWindowSize"](window, w.unsafe_ptr(), h.unsafe_ptr())
+        return Int(w[0]), Int(h[0])
+
 
     def create_renderer(self, window: Int) raises -> Int:
         # `name=0` (NULL) lets SDL auto-select the best available driver,
