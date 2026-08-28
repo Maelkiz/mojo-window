@@ -39,3 +39,7 @@ about:
   license: MIT
   license_file: LICENSE
   summary: SDL3-based windowing library for Mojo
+
+extra:
+  maintainers:
+    - Maelkiz
