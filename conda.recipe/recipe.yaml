@@ -6,7 +6,8 @@ package:
   version: ${{ version }}
 
 source:
-  - path: ..
+  - git: https://github.com/Maelkiz/mojo-window.git
+    rev: 764354fec5f57d4d609152a20cb010b7d7fd48be
 
 build:
   number: 0
