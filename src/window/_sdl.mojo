@@ -23,6 +23,7 @@ actually trips over it.
 """
 
 from std.ffi import _DLHandle
+from std.sys.info import CompilationTarget
 
 comptime _SDL_ABI_MAJOR_VERSION: Int32 = 3
 """Major version this file's `SDL_Event` byte offsets were verified
@@ -96,7 +97,10 @@ struct SDL:
     var lib: _DLHandle
 
     def __init__(out self) raises:
-        self.lib = _DLHandle("libSDL3.so")
+        comptime if CompilationTarget.is_macos():
+            self.lib = _DLHandle("libSDL3.dylib")
+        else:
+            self.lib = _DLHandle("libSDL3.so")
         var major = self.get_version() // 1000000
         if major != _SDL_ABI_MAJOR_VERSION:
             raise Error(
