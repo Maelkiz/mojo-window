@@ -17,6 +17,8 @@ from ._sdl import (
     SDL_GL_DOUBLEBUFFER,
     SDL_GL_DEPTH_SIZE,
     SDL_GL_STENCIL_SIZE,
+    SDL_GL_MULTISAMPLEBUFFERS,
+    SDL_GL_MULTISAMPLESAMPLES,
     event_type,
     window_data1,
     window_data2,
@@ -39,7 +41,16 @@ struct GLWindow:
         height: Int,
         major_version: Int = 3,
         minor_version: Int = 3,
+        core: Bool = True,
+        msaa: Int = 0,
     ) raises:
+        """`core` requests a core profile (no legacy fixed-function GL); off
+        by default it is not restricted, since some drivers reject a profile
+        mask they'd otherwise accept unset. `msaa` is the sample count for
+        multisampling (0 disables it) -- requested here, but a driver that
+        refuses it fails context creation below rather than silently
+        degrading; retrying at 0 after a failure is the caller's call, not
+        this constructor's."""
         self._sdl = SDL()
         self._sdl.init_video()
         try:
@@ -49,12 +60,18 @@ struct GLWindow:
             self._sdl.gl_set_attribute(
                 SDL_GL_CONTEXT_MINOR_VERSION, Int32(minor_version)
             )
-            self._sdl.gl_set_attribute(
-                SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE
-            )
+            if core:
+                self._sdl.gl_set_attribute(
+                    SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE
+                )
             self._sdl.gl_set_attribute(SDL_GL_DOUBLEBUFFER, 1)
             self._sdl.gl_set_attribute(SDL_GL_DEPTH_SIZE, 24)
             self._sdl.gl_set_attribute(SDL_GL_STENCIL_SIZE, 8)
+            if msaa > 0:
+                self._sdl.gl_set_attribute(SDL_GL_MULTISAMPLEBUFFERS, 1)
+                self._sdl.gl_set_attribute(
+                    SDL_GL_MULTISAMPLESAMPLES, Int32(msaa)
+                )
         except e:
             self._sdl.quit_video()
             raise e
@@ -105,6 +122,25 @@ struct GLWindow:
 
     def height(self) -> Int:
         return self._height
+
+    def drawable_size(self) raises -> Tuple[Int, Int]:
+        """Backing pixel size of the drawable, for `glViewport`.
+
+        Not the same number as `width()`/`height()` under display scaling
+        (HiDPI, Wayland fractional scale) -- those track the SDL logical
+        window size, which is what resize events report. Query this after
+        events are pumped and use it for `glViewport`; using the logical
+        size there clips or stretches the rendered frame on a scaled
+        display."""
+        return self._sdl.get_window_size_in_pixels(self._handle)
+
+    def make_current(mut self) raises:
+        """Re-asserts this window's GL context as the current one.
+
+        The constructor already makes it current; call this only if another
+        context (a second `GLWindow`, or a library making its own calls) may
+        have changed what's current since."""
+        self._sdl.gl_make_current(self._handle, self._context)
 
     def get_proc_address(self, name: String) raises -> Int:
         """Address of the GL function `name`, or 0 if unavailable.

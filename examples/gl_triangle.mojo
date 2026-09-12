@@ -16,6 +16,10 @@ comptime GLClearColorFn = def (Float32, Float32, Float32, Float32) thin abi(
     "C"
 ) -> None
 comptime GLClearFn = def (UInt32) thin abi("C") -> None
+comptime GLGetStringFn = def (UInt32) thin abi("C") -> Pointer[
+    UInt8, MutUntrackedOrigin
+]
+comptime GL_VERSION: UInt32 = 0x1F02
 
 
 def bind[
@@ -31,11 +35,16 @@ def bind[
 
 
 def main() raises:
-    var window = GLWindow("GL Triangle", 800, 600)
+    # msaa=4 and drawable_size() are exercised here rather than added
+    # silently -- this is the one place a live GL context actually exists.
+    var window = GLWindow("GL Triangle", 800, 600, msaa=4)
     window.set_swap_interval(1)
 
     var gl_clear_color = bind[GLClearColorFn](window, "glClearColor")
     var gl_clear = bind[GLClearFn](window, "glClear")
+    var gl_get_string = bind[GLGetStringFn](window, "glGetString")
+    print("GL_VERSION:", String(unsafe_from_utf8_ptr=gl_get_string(GL_VERSION)))
+    print("drawable_size:", window.drawable_size())
 
     while window.is_open():
         for event in window.events():

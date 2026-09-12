@@ -43,6 +43,8 @@ comptime SDL_WINDOW_OPENGL: UInt64 = 0x0000000000000002
 comptime SDL_GL_DOUBLEBUFFER: Int32 = 5
 comptime SDL_GL_DEPTH_SIZE: Int32 = 6
 comptime SDL_GL_STENCIL_SIZE: Int32 = 7
+comptime SDL_GL_MULTISAMPLEBUFFERS: Int32 = 13
+comptime SDL_GL_MULTISAMPLESAMPLES: Int32 = 14
 comptime SDL_GL_CONTEXT_MAJOR_VERSION: Int32 = 17
 comptime SDL_GL_CONTEXT_MINOR_VERSION: Int32 = 18
 comptime SDL_GL_CONTEXT_PROFILE_MASK: Int32 = 20
@@ -191,6 +193,16 @@ struct SDL:
         self.lib.call["SDL_GetWindowSize"](window, w.unsafe_ptr(), h.unsafe_ptr())
         return Int(w[0]), Int(h[0])
 
+    def get_window_size_in_pixels(self, window: Int) raises -> Tuple[Int, Int]:
+        """Drawable size in pixels -- differs from `get_window_size` under
+        display scaling (HiDPI, Wayland fractional scale), where the window's
+        logical size and its backing pixel size are not the same number."""
+        var w = List[Int32](length=1, fill=0)
+        var h = List[Int32](length=1, fill=0)
+        self.lib.call["SDL_GetWindowSizeInPixels"](
+            window, w.unsafe_ptr(), h.unsafe_ptr()
+        )
+        return Int(w[0]), Int(h[0])
 
     def create_renderer(self, window: Int) raises -> Int:
         # `name=0` (NULL) lets SDL auto-select the best available driver,
