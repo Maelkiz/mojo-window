@@ -7,3 +7,6 @@
 
 # Built packages
 output/
+
+# Local-source recipe for testing unreleased changes (see .local-recipe/recipe.yaml)
+.local-recipe/
