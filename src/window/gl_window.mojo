@@ -43,6 +43,7 @@ struct GLWindow:
         minor_version: Int = 3,
         core: Bool = True,
         msaa: Int = 0,
+        fullscreen: Bool = False,
     ) raises:
         """`core` requests a core profile (no legacy fixed-function GL); off
         by default it is not restricted, since some drivers reject a profile
@@ -50,7 +51,9 @@ struct GLWindow:
         multisampling (0 disables it) -- requested here, but a driver that
         refuses it fails context creation below rather than silently
         degrading; retrying at 0 after a failure is the caller's call, not
-        this constructor's."""
+        this constructor's. `fullscreen` covers the display and, as with
+        `Window`, makes SDL ignore the requested size -- `width()`/`height()`
+        report what it actually got."""
         self._sdl = SDL()
         self._sdl.init_video()
         try:
@@ -77,7 +80,12 @@ struct GLWindow:
             raise e
         try:
             self._handle = self._sdl.create_window(
-                title, Int32(width), Int32(height), True, opengl=True
+                title,
+                Int32(width),
+                Int32(height),
+                True,
+                opengl=True,
+                fullscreen=fullscreen,
             )
         except e:
             self._sdl.quit_video()
@@ -96,8 +104,22 @@ struct GLWindow:
             self._sdl.quit_video()
             raise e
         self._open = True
+        # Fullscreen makes SDL ignore the requested size, so the real one has
+        # to be queried -- same as `Window`, which needs it to size a texture.
+        # Here nothing is allocated from it, but `width()`/`height()` would
+        # otherwise report the request until the first resize event.
         self._width = width
         self._height = height
+        if fullscreen:
+            try:
+                self._width, self._height = self._sdl.get_window_size(
+                    self._handle
+                )
+            except e:
+                self._sdl.gl_destroy_context(self._context)
+                self._sdl.destroy_window(self._handle)
+                self._sdl.quit_video()
+                raise e
 
     def __deinit__(deinit self):
         try:
@@ -162,6 +184,14 @@ struct GLWindow:
     def swap_buffers(mut self) raises:
         """Presents the back buffer -- call once per frame after drawing."""
         self._sdl.gl_swap_window(self._handle)
+
+    def set_fullscreen(mut self, enabled: Bool) raises:
+        """Enter or leave fullscreen after construction.
+
+        The size follows asynchronously on some compositors, so read
+        `drawable_size()` each frame rather than caching what this leaves
+        behind."""
+        self._sdl.set_window_fullscreen(self._handle, enabled)
 
     def set_swap_interval(mut self, interval: Int) raises:
         """0 = no vsync, 1 = vsync, -1 = adaptive vsync (if supported).

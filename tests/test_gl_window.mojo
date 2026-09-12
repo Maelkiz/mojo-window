@@ -22,6 +22,18 @@ def test_construction_fails_cleanly_under_dummy_driver() raises -> None:
         var w = GLWindow("t", 64, 64)
 
 
+def test_fullscreen_construction_fails_cleanly_under_dummy_driver() raises -> None:
+    """Same refusal, with the fullscreen flag set.
+
+    There is no headless success path (see the module docstring), so this is
+    what the argument can be tested against: it reaches `SDL_CreateWindow`
+    and the failure teardown is the same one. A real fullscreen GL window is
+    a manual check.
+    """
+    with assert_raises(contains="SDL_CreateWindow failed"):
+        var w = GLWindow("t", 64, 64, fullscreen=True)
+
+
 def test_sequential_failed_construction_does_not_crash() raises -> None:
     for _ in range(3):
         with assert_raises(contains="SDL_CreateWindow failed"):
