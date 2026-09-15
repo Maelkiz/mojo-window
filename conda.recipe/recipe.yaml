@@ -1,5 +1,5 @@
 context:
-  version: "0.1.2"
+  version: "0.2.0"
 
 package:
   name: mojo-window
@@ -7,7 +7,7 @@ package:
 
 source:
   - git: https://github.com/Maelkiz/mojo-window.git
-    rev: v0.1.2
+    rev: v0.2.0
 
 build:
   number: 0
