@@ -31,6 +31,7 @@ struct Window:
         height: Int,
         fullscreen: Bool = False,
         resizable: Bool = True,
+        borderless: Bool = False,
     ) raises:
         self._sdl = SDL()
         self._sdl.init_video()
@@ -41,6 +42,7 @@ struct Window:
                 Int32(height),
                 resizable,
                 fullscreen=fullscreen,
+                borderless=borderless,
             )
         except e:
             self._sdl.quit_video()

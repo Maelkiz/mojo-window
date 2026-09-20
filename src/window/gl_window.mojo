@@ -45,6 +45,7 @@ struct GLWindow:
         msaa: Int = 0,
         fullscreen: Bool = False,
         resizable: Bool = True,
+        borderless: Bool = False,
     ) raises:
         """`core` requests a core profile (no legacy fixed-function GL); off
         by default it is not restricted, since some drivers reject a profile
@@ -87,6 +88,7 @@ struct GLWindow:
                 resizable,
                 opengl=True,
                 fullscreen=fullscreen,
+                borderless=borderless,
             )
         except e:
             self._sdl.quit_video()

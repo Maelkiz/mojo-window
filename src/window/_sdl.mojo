@@ -36,6 +36,7 @@ the minor/patch range moving."""
 
 comptime SDL_INIT_VIDEO: UInt32 = 0x00000020
 comptime SDL_WINDOW_FULLSCREEN: UInt64 = 0x0000000000000001
+comptime SDL_WINDOW_BORDERLESS: UInt64 = 0x0000000000000010
 comptime SDL_WINDOW_RESIZABLE: UInt64 = 0x0000000000000020
 comptime SDL_WINDOW_OPENGL: UInt64 = 0x0000000000000002
 
@@ -154,6 +155,7 @@ struct SDL:
         resizable: Bool,
         opengl: Bool = False,
         fullscreen: Bool = False,
+        borderless: Bool = False,
     ) raises -> Int:
         var flags: UInt64 = 0
         if resizable:
@@ -162,6 +164,8 @@ struct SDL:
             flags |= SDL_WINDOW_OPENGL
         if fullscreen:
             flags |= SDL_WINDOW_FULLSCREEN
+        if borderless:
+            flags |= SDL_WINDOW_BORDERLESS
         var window = self.lib.call["SDL_CreateWindow", Int](
             title.unsafe_ptr(), width, height, flags
         )
