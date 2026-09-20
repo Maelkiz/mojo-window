@@ -25,13 +25,22 @@ struct Window:
     var _pixels: List[UInt8]
 
     def __init__(
-        out self, title: String, width: Int, height: Int, fullscreen: Bool = False
+        out self,
+        title: String,
+        width: Int,
+        height: Int,
+        fullscreen: Bool = False,
+        resizable: Bool = True,
     ) raises:
         self._sdl = SDL()
         self._sdl.init_video()
         try:
             self._handle = self._sdl.create_window(
-                title, Int32(width), Int32(height), True, fullscreen=fullscreen
+                title,
+                Int32(width),
+                Int32(height),
+                resizable,
+                fullscreen=fullscreen,
             )
         except e:
             self._sdl.quit_video()

@@ -44,6 +44,7 @@ struct GLWindow:
         core: Bool = True,
         msaa: Int = 0,
         fullscreen: Bool = False,
+        resizable: Bool = True,
     ) raises:
         """`core` requests a core profile (no legacy fixed-function GL); off
         by default it is not restricted, since some drivers reject a profile
@@ -83,7 +84,7 @@ struct GLWindow:
                 title,
                 Int32(width),
                 Int32(height),
-                True,
+                resizable,
                 opengl=True,
                 fullscreen=fullscreen,
             )
