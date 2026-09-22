@@ -32,6 +32,7 @@ struct Window:
         fullscreen: Bool = False,
         resizable: Bool = True,
         borderless: Bool = False,
+        maximized: Bool = False,
     ) raises:
         self._sdl = SDL()
         self._sdl.init_video()
@@ -43,6 +44,7 @@ struct Window:
                 resizable,
                 fullscreen=fullscreen,
                 borderless=borderless,
+                maximized=maximized,
             )
         except e:
             self._sdl.quit_video()
@@ -54,11 +56,12 @@ struct Window:
             self._sdl.destroy_window(self._handle)
             self._sdl.quit_video()
             raise e
-        # When fullscreen, SDL ignores the requested size and uses the display
-        # resolution — query the real dimensions before creating the texture.
+        # When fullscreen or maximized, SDL ignores the requested size and
+        # uses the display or work area — query the real dimensions before
+        # creating the texture.
         var actual_width = width
         var actual_height = height
-        if fullscreen:
+        if fullscreen or maximized:
             try:
                 actual_width, actual_height = self._sdl.get_window_size(
                     self._handle

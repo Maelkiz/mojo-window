@@ -34,6 +34,13 @@ def test_fullscreen_construction_fails_cleanly_under_dummy_driver() raises -> No
         var w = GLWindow("t", 64, 64, fullscreen=True)
 
 
+def test_maximized_construction_fails_cleanly_under_dummy_driver() raises -> None:
+    """Same refusal, with the maximized flag set -- see the fullscreen case
+    above for why that is all this can assert headlessly."""
+    with assert_raises(contains="SDL_CreateWindow failed"):
+        var w = GLWindow("t", 64, 64, maximized=True)
+
+
 def test_sequential_failed_construction_does_not_crash() raises -> None:
     for _ in range(3):
         with assert_raises(contains="SDL_CreateWindow failed"):

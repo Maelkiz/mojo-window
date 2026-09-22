@@ -46,6 +46,7 @@ struct GLWindow:
         fullscreen: Bool = False,
         resizable: Bool = True,
         borderless: Bool = False,
+        maximized: Bool = False,
     ) raises:
         """`core` requests a core profile (no legacy fixed-function GL); off
         by default it is not restricted, since some drivers reject a profile
@@ -55,7 +56,8 @@ struct GLWindow:
         degrading; retrying at 0 after a failure is the caller's call, not
         this constructor's. `fullscreen` covers the display and, as with
         `Window`, makes SDL ignore the requested size -- `width()`/`height()`
-        report what it actually got."""
+        report what it actually got. `maximized` opens filling the desktop
+        work area, and is subject to the same size substitution."""
         self._sdl = SDL()
         self._sdl.init_video()
         try:
@@ -89,6 +91,7 @@ struct GLWindow:
                 opengl=True,
                 fullscreen=fullscreen,
                 borderless=borderless,
+                maximized=maximized,
             )
         except e:
             self._sdl.quit_video()
@@ -107,13 +110,14 @@ struct GLWindow:
             self._sdl.quit_video()
             raise e
         self._open = True
-        # Fullscreen makes SDL ignore the requested size, so the real one has
-        # to be queried -- same as `Window`, which needs it to size a texture.
+        # Fullscreen and maximized make SDL ignore the requested size, so the
+        # real one has to be queried -- same as `Window`, which needs it to
+        # size a texture.
         # Here nothing is allocated from it, but `width()`/`height()` would
         # otherwise report the request until the first resize event.
         self._width = width
         self._height = height
-        if fullscreen:
+        if fullscreen or maximized:
             try:
                 self._width, self._height = self._sdl.get_window_size(
                     self._handle

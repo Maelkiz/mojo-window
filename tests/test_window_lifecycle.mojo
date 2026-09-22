@@ -19,6 +19,17 @@ def test_sequential_create_destroy() raises -> None:
         assert_true(w.is_open())
 
 
+def test_maximized_opens_and_reports_a_size() raises -> None:
+    """The dummy driver has no work area to maximize into, so the size it
+    reports back is not pinned to anything -- what matters is that the flag
+    reaches `SDL_CreateWindow`, the window opens, and the queried size is
+    used in place of the request without tripping the teardown path."""
+    var w = Window("t", 64, 64, maximized=True)
+    assert_true(w.is_open())
+    assert_true(w.width() > 0)
+    assert_true(w.height() > 0)
+
+
 def test_ticks_monotonic() raises -> None:
     var w = Window("t", 64, 64)
     var a = w.ticks()

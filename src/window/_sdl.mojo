@@ -38,6 +38,7 @@ comptime SDL_INIT_VIDEO: UInt32 = 0x00000020
 comptime SDL_WINDOW_FULLSCREEN: UInt64 = 0x0000000000000001
 comptime SDL_WINDOW_BORDERLESS: UInt64 = 0x0000000000000010
 comptime SDL_WINDOW_RESIZABLE: UInt64 = 0x0000000000000020
+comptime SDL_WINDOW_MAXIMIZED: UInt64 = 0x0000000000000080
 comptime SDL_WINDOW_OPENGL: UInt64 = 0x0000000000000002
 
 # SDL_GLAttr enum values (positional, per SDL_video.h).
@@ -156,6 +157,7 @@ struct SDL:
         opengl: Bool = False,
         fullscreen: Bool = False,
         borderless: Bool = False,
+        maximized: Bool = False,
     ) raises -> Int:
         var flags: UInt64 = 0
         if resizable:
@@ -166,6 +168,8 @@ struct SDL:
             flags |= SDL_WINDOW_FULLSCREEN
         if borderless:
             flags |= SDL_WINDOW_BORDERLESS
+        if maximized:
+            flags |= SDL_WINDOW_MAXIMIZED
         var window = self.lib.call["SDL_CreateWindow", Int](
             title.unsafe_ptr(), width, height, flags
         )
