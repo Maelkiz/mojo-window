@@ -212,7 +212,7 @@ struct GLWindow:
         texture to reallocate for a GL-backed window.
         """
         var events: List[Event] = []
-        var buf = InlineArray[UInt8, SDL_EVENT_SIZE](fill=0)
+        var buf = Array[UInt8, SDL_EVENT_SIZE](fill=0)
         var ptr = buf.unsafe_ptr()
         while self._sdl.poll_event(ptr):
             var kind = event_type(ptr)
